@@ -9,9 +9,20 @@ async function drawPot(_potData) {
 
     let edgePoints = _potData.edgePoints;
 
-    let startIsOutCurve = random() < 0.5;
 
-    isOutCurve = startIsOutCurve;
+
+    // pick the curves first
+    let edgeCurves = [];
+    let isOutCurve = random() < 0.5;
+
+    for (let i = 0; i < edgePoints.length - 1; i++) {
+        if (isOutCurve)
+            edgeCurves.push(curvesOut[int(random(curvesOut.length))]);
+        else
+            edgeCurves.push(curvesIn[int(random(curvesIn.length))]);
+
+        isOutCurve = !isOutCurve;
+    }
 
     // draw pot body
     for (let i = 0; i < edgePoints.length - 1; i++) {
@@ -26,18 +37,9 @@ async function drawPot(_potData) {
         let toY = _potData.y - nextPoint.y;
         let toDist = nextPoint.x;
 
-        let currentCurve = easeInSine;
-
-        if (isOutCurve)
-            currentCurve = curvesOut[int(random(curvesOut.length))];
-        else
-            currentCurve = curvesIn[int(random(curvesIn.length))];
-
-        isOutCurve = !isOutCurve;
+        let currentCurve = edgeCurves[i];
         await drawEdgeSegment(fromX, fromY, fromDist, toX, toY, toDist, currentCurve);
     }
-
-    isOutCurve = startIsOutCurve;
 
     // draw edge dots
     for (let i = 0; i < edgePoints.length - 1; i++) {
@@ -52,14 +54,7 @@ async function drawPot(_potData) {
         let toY = _potData.y - nextPoint.y;
         let toDist = nextPoint.x;
 
-        let currentCurve = easeInSine;
-
-        if (isOutCurve)
-            currentCurve = curvesOut[int(random(curvesOut.length))];
-        else
-            currentCurve = curvesIn[int(random(curvesIn.length))];
-
-        isOutCurve = !isOutCurve;
+        let currentCurve = edgeCurves[i];
         await drawSegmentDots(fromX, fromY, fromDist, toX, toY, toDist, currentCurve);
     }
 
