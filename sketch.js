@@ -10,8 +10,10 @@ let _backLayer;
 let _midLayer;
 let _frontLayer;
 
+let _colorSet;
+
 async function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(1080, 1080);
   _backLayer = createGraphics(width, height);
   _midLayer = createGraphics(width, height);
   _frontLayer = createGraphics(width, height);
@@ -21,15 +23,17 @@ async function setup() {
   _frontLayer.colorMode(HSB);
   colorMode(HSB);
 
-  _backLayer.background(0, 0, 92);
+  // get color
+  _colorSet = GetColorSet();
+  _backLayer.background(_colorSet.bgColor.h, _colorSet.bgColor.s, _colorSet.bgColor.b);
 
   let padding = 0.15 * min(width, height);
 
   // bg part
   let baseHeight = padding + 0.85 * (height - 2 * padding);
 
-  let bgHeight = random(0.02, 0.2) * height;
-  let xCount = width * dotDensity;
+  let bgHeight = 0.06 * height;
+  let xCount = width * random(0.6, 1.2);
 
   for (let x = 0; x < xCount; x++) {
     let yDotCount = bgHeight * dotDensity * 0.6;
@@ -40,14 +44,17 @@ async function setup() {
       let nowX = x * (width / (xCount - 1));
       let nowY = baseHeight - bgHeight * t - 0.2 * height;
 
-      _backLayer.stroke(200, 20, 80);
+      // _backLayer.noStroke();
+      _backLayer.noFill();
+      _backLayer.stroke(_colorSet.bgDotColor.h, _colorSet.bgDotColor.s, _colorSet.bgDotColor.b);
       _backLayer.circle(nowX, nowY, random(0, 2));
     }
   }
   UpdateLayers();
 
 
-  let potCount = int(random(6, 18));
+  // let potCount = int(random(6, 18));
+  let potCount = 17;
   let potWidth = (width - padding * 2) / potCount;
 
   for (let i = 0; i < potCount; i++) {

@@ -13,7 +13,8 @@ function getStick(_x, _y, _dir, _length, _maxNodeDepth) {
         'x2': toX,
         'y2': toY,
         'dir': _dir,
-        'length': _length
+        'length': _length,
+        'nodeDepth': _maxNodeDepth
     });
 
     let splitNode = random() < 0.5;

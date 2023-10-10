@@ -1,6 +1,7 @@
 
 let lineDensity = 0.8;
 let dotDensity = 0.8;
+let stickDotDensity = 0.8;
 
 async function drawPot(_potData) {
 
@@ -8,8 +9,6 @@ async function drawPot(_potData) {
     let startY = _potData.y;
 
     let edgePoints = _potData.edgePoints;
-
-
 
     // pick the curves first
     let edgeCurves = [];
@@ -110,12 +109,14 @@ async function drawEdgeSegment(_fromX, _fromY, _fromDist, _toX, _toY, _toDist, _
         let rightX = centerX + nowDist;
         let rightY = centerY;
 
-        let nowColor = new NYColor(100, 60, 40);
+        let nowColor = new NYColor(0, 0, 0);
 
-        nowColor = new NYColor(200, 30, 30);
+        // nowColor = NYLerpColor(_colorSet.potStrokeColorA, _colorSet.potStrokeColorB, t);
+        nowColor = _colorSet.potStrokeColorA;
         drawCurveLine(leftX, leftY, rightX, rightY, abs(leftX - rightX) * 0.24, nowColor, 12);
 
-        nowColor = new NYColor(200, 6, 80);
+        // nowColor = NYLerpColor(_colorSet.potInsideColorA, _colorSet.potInsideColorB, t);
+        nowColor = _colorSet.potInsideColorA;
         drawCurveLine(leftX, leftY, rightX, rightY, abs(leftX - rightX) * 0.24, nowColor, 3);
         UpdateLayers();
         await sleep(1);
@@ -181,7 +182,7 @@ async function drawSegmentDots(_fromX, _fromY, _fromDist, _toX, _toY, _toDist, _
 
         let nowColor = new NYColor(100, 60, 40);
 
-        nowColor = new NYColor(200, 6, 80);
+        nowColor = _colorSet.potEdgeDotColor;
         drawCurveLineDots(leftX, leftY, rightX, rightY, abs(leftX - rightX) * 0.24, nowColor, 1);
         UpdateLayers();
         await sleep(1);
@@ -235,8 +236,6 @@ function drawStick(_x, _y, _startDir, _thickness, _length) {
     for (let i = 0; i < lineCount; i++) {
         circle(nowX, nowY, 12);
 
-        // if (random() < 0.06)
-        //     baseAngle += random(-80, 80);
         strokeWeight(1);
         stroke(0, 0, 10);
         fill(0, 0, random(30, 60));
@@ -251,12 +250,64 @@ function drawStick(_x, _y, _startDir, _thickness, _length) {
 
 
 async function drawStick(_stickObj) {
+
+    let hasFlower = random() < 0.5;
+
     for (let i = 0; i < _stickObj.nodes.length; i++) {
         let nodeData = _stickObj.nodes[i];
-        _midLayer.strokeWeight(3);
-        _midLayer.stroke(0, 0, 6);
-        _midLayer.line(nodeData.x1, nodeData.y1, nodeData.x2, nodeData.y2);
+        // _midLayer.strokeWeight(3);
+        // _midLayer.stroke(0, 0, 20);
+        // _midLayer.line(nodeData.x1, nodeData.y1, nodeData.x2, nodeData.y2);
+        _midLayer.noStroke();
+        _midLayer.fill(_colorSet.stickColor.h, _colorSet.stickColor.s, _colorSet.stickColor.b);
+
+        let nowThickness = 3;
+
+        if (nodeData.nodeDepth <= 2) {
+            nowThickness = 2;
+        }
+        drawStickBranch(nodeData.x1, nodeData.y1, nodeData.x2, nodeData.y2, nowThickness);
+
+        if (nodeData.nodeDepth <= 3 && hasFlower)
+            drawDottedFlowers(nodeData);
+
         UpdateLayers();
         await sleep(1);
+    }
+}
+
+function drawStickBranch(_x1, _y1, _x2, _y2, _thickness) {
+    let dotCount = dist(_x1, _y1, _x2, _y2) * stickDotDensity;
+
+    for (let i = 0; i < dotCount; i++) {
+        let t = i / (dotCount - 1);
+        let nowX = lerp(_x1, _x2, t);
+        let nowY = lerp(_y1, _y2, t);
+
+        let normalAngle = getAngle(_x1, _y1, _x2, _y2) + 90;
+
+        nowX += sin(radians(normalAngle)) * noise(nowX * 0.1, nowY * 0.1, 666.0) * _thickness;
+        nowY -= cos(radians(normalAngle)) * noise(nowX * 0.1, nowY * 0.1, 999.0) * _thickness;
+
+        let dotSize = noise(nowX * 0.6, nowY * 0.6) * _thickness + _thickness * 0.5;
+        _midLayer.circle(nowX, nowY, dotSize);
+    }
+}
+
+function drawDottedFlowers(_node) {
+    let flowerDotCount = int(random(0, 6));
+
+    for (let i = 0; i < flowerDotCount; i++) {
+        let xPos = lerp(_node.x1, _node.x2, random());
+        let yPos = lerp(_node.y1, _node.y2, random());
+
+        xPos += random() * 60 - 30;
+        yPos += random() * 60 - 30;
+
+        let dotSize = random(0.1, 6);
+
+        _midLayer.noStroke();
+        _midLayer.fill(_colorSet.flowerColor.h, _colorSet.flowerColor.s, _colorSet.flowerColor.b);
+        _midLayer.circle(xPos, yPos, dotSize);
     }
 }
